@@ -7,20 +7,23 @@ End-to-end test suite for [Stayforlong](https://www.stayforlong.com), powered by
 ## How it works
 
 ```
-Jira Issue (WEB-666)          Datadog Synthetics JSON
-        ↓  jira2md                     ↓  dd2md
-        └──────────── md-specs/*.md ───┘
+QA Specialist (natural language)
+        ↓  /qa-criteria  (Claude Code skill)
+  QA Requirements list  →  pasted into Jira ticket
+        ↓  jira2md                     Datadog Synthetics JSON
+        └──────────── md-specs/*.md ───┘  dd2md
                            ↓  md2spec  (Claude AI + Playwright browser)
                playwright/specs/*.spec.ts
                            ↓  Playwright
                    Smoke tests · Regression suite · CI/CD
 ```
 
-1. **`jira2md`** — reads a Jira issue via API, extracts the QA section, and writes a Markdown spec
-2. **`dd2md`** — converts Datadog Synthetics JSON exports to Markdown specs
-3. **`md-specs/`** — human-readable Markdown test specs, the single source of truth
-4. **`md2spec`** — Claude AI navigates a real browser following each step, finds selectors, and writes the Playwright spec
-5. **`playwright/specs/`** — final `.spec.ts` files; once generated, run with zero AI cost
+1. **`/qa-criteria`** — Claude Code skill that helps a QA specialist define numbered acceptance criteria in natural language, ready to paste into Jira
+2. **`jira2md`** — reads a Jira issue via API, extracts the QA section, and writes a Markdown spec
+3. **`dd2md`** — converts Datadog Synthetics JSON exports to Markdown specs
+4. **`md-specs/`** — human-readable Markdown test specs, the single source of truth
+5. **`md2spec`** — Claude AI navigates a real browser following each step, finds selectors, and writes the Playwright spec
+6. **`playwright/specs/`** — final `.spec.ts` files; once generated, run with zero AI cost
 
 ---
 
@@ -32,6 +35,13 @@ stayforlong-qa/
 │   ├── dd2md/          # CLI: Datadog JSON → Markdown spec
 │   ├── jira2md/        # CLI: Jira issue → Markdown spec
 │   └── md2spec/        # CLI: Markdown spec → Playwright .spec.ts
+│
+├── skills/             # Claude AI skills — single source of truth
+│   └── qa-criteria.md  # /qa-criteria — generates QA acceptance criteria for Jira
+│
+├── .claude/
+│   └── commands/       # Claude Code slash commands (symlinks to skills/)
+│       └── qa-criteria.md → ../../skills/qa-criteria.md
 │
 ├── datadog-exports/    # Original Datadog Synthetics JSON exports
 ├── md-specs/           # Human-readable Markdown test specs
@@ -158,6 +168,49 @@ Files with `movil` or `mobile` in their name get `<!-- viewport: mobile -->` aut
 
 ---
 
+## QA skill: defining acceptance criteria
+
+The `/qa-criteria` skill helps QA specialists with no technical background define well-structured acceptance criteria that feed directly into the automation pipeline.
+
+### How to use it
+
+**In Claude Code** (CLI or IDE extension): type `/qa-criteria` in any conversation with the project open — the command is auto-loaded from `.claude/commands/`.
+
+**In Claude Desktop**: import `skills/qa-criteria.md` via the Customize → Skills section, or paste its contents as Project Instructions in a dedicated project.
+
+The skill will ask a few questions (site section, device, market) and then ask you to describe the test in plain language. It generates a numbered list in English ready to paste into Jira.
+
+### Output format
+
+Paste the generated block into the Jira ticket description under one of these headings (any works):
+`QA Requirements`, `Acceptance Criteria`, `Definition of Done`
+
+```
+QA Requirements
+
+1. Navigate to https://es.stayforlong.com/
+2. Click on the search field
+3. Enter "barcelona" in the search field
+4. Click and select Barcelona from the suggestions
+5. Click on the check-in date field to open the date picker
+6. Select a check-in date
+7. Select a check-out date
+8. Click the search button
+9. Wait until accommodations are fully loaded
+```
+
+When the Jira ticket enters the CD pipeline, `jira2md` extracts this list automatically and converts it to an `md-specs/*.md` file.
+
+### Reserved words — do not use in criteria
+
+The following words cause steps to be **skipped silently** by the pipeline. The skill avoids them automatically, but keep this in mind if editing manually:
+
+`modal` · `popup` · `banner` · `overlay` · `newsletter` · `consent` · `cookie`
+
+Use alternatives: "full-screen gallery", "lightbox", "notification", "section".
+
+---
+
 ## Writing Markdown specs
 
 Specs live in `md-specs/`. Each file follows this format:
@@ -268,6 +321,8 @@ done
 | Path | Versioned | Reason |
 |---|---|---|
 | `tools/*/src/` | ✅ | Tool source code |
+| `skills/` | ✅ | Claude AI skills — single source of truth |
+| `.claude/commands/` | ✅ | Symlinks to `skills/` — auto-loaded by Claude Code |
 | `datadog-exports/*.json` | ✅ | Original Datadog test definitions |
 | `md-specs/*.md` | ✅ | Human-readable test specs |
 | `playwright/specs/*.spec.ts` | ✅ | Generated Playwright tests |

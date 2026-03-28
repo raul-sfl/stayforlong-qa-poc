@@ -21,6 +21,9 @@ playwright/.auth/
 # ── AutoQA run artifacts (screenshots, traces, logs) ──────
 **/.autoqa/
 
+# ── Claude Code local config ──────────────────────────────
+.claude/
+
 # ── macOS ─────────────────────────────────────────────────
 .DS_Store
 
