@@ -6,7 +6,8 @@
 - Browser is open and ready
 
 ## Steps
-1. Navigate to https://stayforlong.com/es/city/granada?market=us&lang=en
-2. Click hamburger menu toggle button
-3. Click language/currency selector
-4. Click España (Español) option
+1. Navigate to https://www.stayforlong.com/es/city/granada?market=us&lang=en
+2. Click to USD currency option in the right menu in the header
+3. Check if the popup appears with the different markets options
+4. Select España (Español) country with EUR currency option
+5. Check if the page reloads with the new market Italy with EUR currency in the currency option on the right menu in the header

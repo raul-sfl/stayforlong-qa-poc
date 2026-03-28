@@ -7,5 +7,5 @@
 
 ## Steps
 1. Navigate to https://es.stayforlong.com/hotel/es/bcn-urbaness-del-comte_barcelona
-2. Click share icon
-3. Click "Compartir por Whatsapp" option
+2. Click to share icon
+3. Click to "Compartir por Whatsapp" option

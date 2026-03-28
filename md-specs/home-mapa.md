@@ -8,7 +8,8 @@
 ## Steps
 1. Navigate to https://es.stayforlong.com
 2. Close popup of subscription if present clicking on close icon
-3. Enter 'madrid' in travel destination field
-4. Select Madrid from dropdown suggestions
-5. Click search button
-6. Click view map link
+3. Wait until the autocomplete dropdown suggestions appear
+4. Enter 'madrid' in travel destination field
+5. Select Madrid from dropdown suggestions
+6. Click search button
+7. Click view map link

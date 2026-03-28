@@ -7,9 +7,8 @@
 
 ## Steps
 1. Navigate to https://www.stayforlong.com/hotel/es/bcn-urbaness-del-comte_barcelon
-2. Click on Guests input field
-3. Click on Guests input field
-4. Click add icon for children ages
-5. Click on children's ages selector button
-6. Select age 6 from dropdown list
-7. Click Save button
+2. Click on room and guest selection button
+3. Click the + button to add 1 child
+4. Click the age selector button to open the age dropdown
+5. Select age 3 from the age list
+6. Click Save button

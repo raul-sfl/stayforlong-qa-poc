@@ -4,19 +4,22 @@
 - Browser is open and ready
 
 ## Steps
-1. Navigate to https://es.stayforlong.com/hotel/es/bcn-urbaness-del-comte_barcelona
-2. Scroll to the hotel photos section
-3. Click on the first hotel photo to open the full-screen photo gallery
-4. Check if the category filter "Ver todas" is visible in the gallery header
-5. Check if the category filter "Habitaciones" is visible in the gallery header
-6. Click on the "Habitaciones" category filter button in the gallery header
-7. Assert that the "Habitaciones" filter button has an active/selected style (dark background)
-8. Assert that the "Ver todas" filter button no longer has the active style
-9. Click on the "Exterior" category filter button in the gallery header
-10. Assert that the "Exterior" filter button has an active/selected style (dark background)
-11. Assert that the "Habitaciones" filter button no longer has the active style
-12. Click on the "Ver todas" category filter button in the gallery header
-13. Assert that the "Ver todas" filter button has an active/selected style (dark background)
-14. Assert that the "Exterior" filter button no longer has the active style
-15. Click on the close button in the top right corner of the photo gallery
-16. Check if the hotel photos section is visible on the page
+1. Navigate to https://es.stayforlong.com/hotel/it/the-nicolaus-hotel_bari
+2. Wait until the hotel page is loaded
+3. Check if the hotel photo grid is visible
+4. Click on the first photo in the hotel photo grid
+5. Check if the full-screen gallery with data-testid="gallery-content" is visible
+6. Check if the category filter bar is visible inside the gallery
+7. Check if the category pill whose text starts with "Ver todas" has the active style
+8. Click on the category pill whose text starts with "Habitaciones"
+9. Check if the category pill whose text starts with "Habitaciones" has the active style
+10. Check if the category pill whose text starts with "Ver todas" no longer has the active style
+11. Click on the category pill whose text starts with "Piscina"
+12. Check if the category pill whose text starts with "Piscina" has the active style
+13. Check if the category pill whose text starts with "Habitaciones" no longer has the active style
+14. Click on the category pill whose text starts with "Ver todas"
+15. Check if the category pill whose text starts with "Ver todas" has the active style
+16. Click on the close button with data-testid="close-button"
+17. Check if the full-screen gallery is no longer visible
+18. Check if the hotel page content is visible
+19. Check if the hotel name heading is visible

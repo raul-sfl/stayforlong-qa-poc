@@ -7,9 +7,9 @@
 
 ## Steps
 1. Navigate to https://www.stayforlong.com/es/city/barcelona
-2. Click on room and guest selection button
-3. Click Add icon to add children
-4. Click on children's ages selector
-5. Select age 3 from dropdown
-6. Click Save button
+2. Click room and guest settings button
+3. Click the + button to add 1 child
+4. Click the age selector button to open the age dropdown
+5. Select age 3 from the age list
+6. Click the Save button
 7. Click Search button
