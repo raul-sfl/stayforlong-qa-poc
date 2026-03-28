@@ -66,9 +66,10 @@ export async function runMd2Spec(
     ...(resolvedViewport ? { viewport: resolvedViewport } : {}),
   };
 
-  if (opts.storageState && fs.existsSync(opts.storageState)) {
-    contextOptions.storageState = opts.storageState;
-    console.log(`   Using storage state: ${opts.storageState}`);
+  const resolvedStorageState = opts.storageState ?? config.storageState;
+  if (resolvedStorageState && fs.existsSync(resolvedStorageState)) {
+    contextOptions.storageState = resolvedStorageState;
+    console.log(`   Using storage state: ${resolvedStorageState}`);
   }
 
   const context = await browser.newContext(contextOptions);
@@ -76,6 +77,7 @@ export async function runMd2Spec(
 
   const recordedSteps: RecordedStep[] = [];
   let totalUsage: TokenUsage = { ...ZERO_USAGE };
+  let abortedOnFailure = false;
 
   try {
     for (let i = 0; i < spec.steps.length; i++) {
@@ -101,6 +103,7 @@ export async function runMd2Spec(
         const popupSelector = config.popupClose?.selector;
 
         await autoAcceptConsent(page, url);
+        await autoClosePopup(page, config.popupClose?.selector);
 
         const navCode: string[] = [`await page.goto(${JSON.stringify(url)});`];
 
@@ -127,10 +130,36 @@ export async function runMd2Spec(
         continue;
       }
 
-      // Popup/modal steps: wait for the overlay to appear before snapshotting
-      // Popups use setTimeout delays so networkidle doesn't guarantee they're visible
+      // Popup/modal steps: try config selector directly before going through Claude
+      // This avoids DOM snapshot MAX_ELEMENTS limit issues for popups deep in the page
+      if (isPopupStep(stepText) && config.popupClose?.selector) {
+        const popupSel = config.popupClose.selector;
+        try {
+          await page.locator(popupSel).waitFor({ state: 'visible', timeout: 6000 });
+          await page.locator(popupSel).click();
+          const code = `try {\n  await page.locator(${JSON.stringify(popupSel)}).waitFor({ state: 'visible', timeout: 6000 });\n  await page.locator(${JSON.stringify(popupSel)}).click();\n} catch { /* popup not present */ }`;
+          recordedSteps.push({ description: stepText, code, optional: true });
+          console.log('✓ (popup closed)');
+          continue;
+        } catch {
+          // Popup didn't appear — skip silently if optional
+          if (optional) {
+            const code = `try {\n  await page.locator(${JSON.stringify(popupSel)}).waitFor({ state: 'visible', timeout: 6000 });\n  await page.locator(${JSON.stringify(popupSel)}).click();\n} catch { /* popup not present */ }`;
+            recordedSteps.push({ description: stepText, code, optional: true });
+            console.log('⚠ skipped (popup not present)');
+            continue;
+          }
+        }
+      }
+
+      // Other popup/modal steps: wait for overlay before snapshotting
       if (isPopupStep(stepText)) {
-        await page.waitForTimeout(3000);
+        try {
+          await page.locator('[role="dialog"], [class*="modal"], [class*="Modal"], [class*="popup"], [class*="Popup"], [class*="overlay"]')
+            .first().waitFor({ state: 'visible', timeout: 4000 });
+        } catch {
+          await page.waitForTimeout(2000);
+        }
       }
 
       // Get DOM snapshot of current page state
@@ -153,10 +182,15 @@ export async function runMd2Spec(
         console.log(`⚠ skipped (optional)${costStr}`);
       } else {
         console.log(`✗ failed${costStr}`);
+        console.log(`   ⛔ Stopping — fix this step before continuing to avoid wasting tokens.`);
+        abortedOnFailure = true;
+        break;
       }
 
-      // Extra wait after forceClick: typically opens a calendar or dropdown overlay
-      if (action.forceClick || (action.type === 'click' && action.locatorArg?.includes('checkin'))) {
+      // Extra wait after forceClick or calendar navigation: overlays and animations need time
+      const isCalendarNav = action.type === 'click' && action.locatorArg?.includes('ChevronRight');
+      const isDateField = action.type === 'click' && action.locatorArg?.includes('checkin');
+      if (action.forceClick || isDateField || isCalendarNav) {
         await page.waitForTimeout(1500);
       }
 
@@ -199,9 +233,11 @@ export async function runMd2Spec(
       console.log(`\n❌ ${failedSteps.length} required step(s) failed — spec would NOT be written:`);
       failedSteps.forEach(s => console.log(`   - ${s.description}`));
     }
-  } else if (failedSteps.length > 0) {
-    console.log(`❌ ${failedSteps.length} required step(s) could not be generated — spec NOT written:`);
-    failedSteps.forEach(s => console.log(`   - ${s.description}`));
+  } else if (abortedOnFailure || failedSteps.length > 0) {
+    console.log(`❌ Spec NOT written — test did not complete successfully.`);
+    if (failedSteps.length > 0) {
+      failedSteps.forEach(s => console.log(`   - ${s.description}`));
+    }
   } else {
     fs.mkdirSync(opts.outputDir, { recursive: true });
     const outPath = path.join(opts.outputDir, outFileName);
@@ -322,7 +358,24 @@ function buildLocator(page: Page, action: PlaywrightAction) {
       locator = page.locator(arg);
   }
 
-  return action.useFirst ? locator.first() : locator;
+  if (action.useFirst) return locator.first();
+  if (action.useNth !== undefined) return locator.nth(action.useNth);
+  return locator;
+}
+
+/**
+ * Silently closes the subscription/offers popup after every navigation.
+ * Mirrors what the generated spec does at runtime via global-setup or inline try/catch.
+ */
+async function autoClosePopup(page: Page, selector?: string): Promise<void> {
+  if (!selector) return;
+  try {
+    await page.locator(selector).first().waitFor({ state: 'visible', timeout: 6000 });
+    await page.locator(selector).first().click();
+    process.stdout.write(' (popup closed)');
+  } catch {
+    // Popup not present — that's fine
+  }
 }
 
 /**
@@ -333,10 +386,10 @@ function buildLocator(page: Page, action: PlaywrightAction) {
 async function autoAcceptConsent(page: Page, originalUrl: string): Promise<void> {
   try {
     const consentBtn = page.locator('#adopt-accept-all-button');
-    await consentBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await consentBtn.waitFor({ state: 'visible', timeout: 12000 });
     await consentBtn.click();
     // Consent may redirect to a different domain — navigate back
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1500);
     if (!page.url().startsWith(new URL(originalUrl).origin)) {
       await page.goto(originalUrl, { waitUntil: 'domcontentloaded' });
       try {

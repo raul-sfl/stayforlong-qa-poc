@@ -38,8 +38,27 @@ Ask the following questions in the user's language:
 - UK — www.stayforlong.co.uk
 - Other
 
+**Question 4 — URL (optional but recommended):**
+Ask if the user has a specific URL to test (e.g. a specific hotel page). If provided, use it in the Navigate step and also for DOM inspection in Step 1b.
+
 Then ask in free text (in the user's language), something like:
 > "Tell me what needs to work correctly for this test to be a success. No technical knowledge needed — describe it as if you were explaining it to a colleague."
+
+---
+
+## STEP 1b — DOM inspection (if URL provided)
+
+If the user provided a specific URL or if the feature involves non-standard UI elements (galleries, custom dropdowns, sliders, tabs, etc.), **inspect the live page before writing the criteria**:
+
+1. Use browser tools to navigate to the URL
+2. Navigate the page to reach the UI state being tested (e.g. click a photo to open the gallery, open a dropdown, etc.)
+3. Inspect the relevant elements to understand:
+   - What HTML element type they are (`<button>`, `<div>`, `<a>`, etc.)
+   - What attributes identify them (`data-testid`, `aria-label`, `role`, `class`, visible text)
+   - Whether text includes dynamic content like counts (e.g. "Habitaciones (42)")
+4. Use this real DOM knowledge to write precise, resilient step descriptions
+
+This ensures the criteria reflect the actual current state of the UI — not assumptions — and remain valid even if the element type changes in future releases.
 
 ---
 
@@ -93,11 +112,37 @@ HDP (example):
 ### Stayforlong UI knowledge
 
 - Search field: placeholder `¿A dónde vas a viajar?` (ES) / `Where are you going?` (EN)
+- Autocomplete suggestions: each suggestion shows a city name + subtitle (e.g. "Barcelona" + "Barcelona, España"). Always reference only the city name — never the full subtitle. Always add a `Wait until the autocomplete dropdown suggestions appear` step before clicking a suggestion.
 - Check-in field: `id="checkinrooms"` — requires a force click to open the calendar
 - Check-out field: `id="checkoutrooms"`
 - Calendar: shows two months side by side. Navigation arrows are SVGs with `data-testid="ChevronRightIcon"`
-- Calendar days have `data-testid="default-day"` — adjacent month days have `aria-hidden="true"` and must be excluded
+- Calendar days: always write day selection steps as `Select day N of the first/second month` — never add "as check-in" or "as check-out" (the pipeline infers the order automatically)
 - Market/currency selector: in the right-side header menu
+
+### Common patterns
+
+**Full search flow (home → SERP):**
+```
+1. Navigate to https://es.stayforlong.com/
+2. Enter "Barcelona" in the search field
+3. Wait until the autocomplete dropdown suggestions appear
+4. Click on the "Barcelona" option from the autocomplete dropdown suggestions
+5. (Optional) Click on the check-in date field to open the calendar
+6. Click the next month arrow to navigate forward
+7. Click the next month arrow to navigate forward
+8. Select day X of the first month
+9. Select day Y of the second month
+10. Click the search button
+11. Wait until search results are loaded
+```
+
+Rules for this pattern:
+- Step 3 (`Wait until...`) is mandatory — without it the suggestion click fails
+- Autocomplete: city name only, never "Barcelona, Cataluña, España"
+- Step 5 is `(Optional)` — on mobile the calendar may open automatically after selecting the city
+- Calendar navigation: one step per arrow click, never "navigate N months forward" in a single step
+- Day selection: `Select day N of the first/second month` — never "as check-in" / "as check-out"
+- End with `Wait until search results are loaded`, not `Assert that results are visible`
 
 ---
 

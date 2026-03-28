@@ -44,6 +44,7 @@ export interface PlaywrightAction {
   locatorArg?: string;
   locatorOptions?: Record<string, unknown>;
   useFirst?: boolean;
+  useNth?: number;
   actionArg?: string;
   url?: string;
   optional?: boolean;
@@ -63,6 +64,7 @@ JSON schema:
   "locatorArg": string,
   "locatorOptions": object (optional),
   "useFirst": boolean (optional, use .first() when multiple matches expected),
+  "useNth": number (optional, 0-based index — use .nth(N) to pick a specific occurrence),
   "actionArg": string (for fill/selectOption/press/assert with text),
   "url": string (only for navigate),
   "optional": boolean (true when step says "if present", "if visible", etc.)
@@ -97,7 +99,8 @@ Rules:
 - IMPORTANT: getByTestId is ONLY for elements with data-testid="..." attribute. For elements with id="..." use locator('#id') instead. Never confuse id= with data-testid=.
 - IMPORTANT: when selecting items by number (calendar days, list items with numeric names), always add exact: true in locatorOptions to avoid partial matches. Example: getByRole('button', { name: '4' }) matches 4, 14, 24 — use locatorOptions: { name: '4', exact: true } instead.
 - IMPORTANT: elements with aria-hidden="true" are invisible to users and cannot be clicked. When a selector returns multiple matches and some have aria-hidden="true", add [aria-hidden="false"] to the CSS selector to exclude them.
-- When a step says "first month" use useFirst: true. When it says "second month" or "second calendar", scope with locatorArg that includes a parent scoping (e.g. '.calendar:nth-child(2) [data-testid="default-day"]').
+- When multiple identical elements exist and you need a specific occurrence (e.g. 2nd + button, 2nd dropdown), use useNth with 0-based index instead of useFirst
+- When a step says "first month" use useFirst: true with locatorArg ':nth-match(.calendar, 1) [data-testid="default-day"][aria-hidden="false"]'. When it says "second month" or "second calendar", use locatorArg ':nth-match(.calendar, 2) [data-testid="default-day"][aria-hidden="false"]'. NEVER use .calendar:nth-of-type() or .calendar:first-of-type as they do not work with CSS class selectors.
 - For ASSERTIONS — steps that verify/check something rather than interact with it:
   Patterns: "is displayed", "is visible", "is shown", "should be present", "should appear", "must be visible",
             "is not displayed", "is not visible", "should not be present", "contains text", "has text"
@@ -162,9 +165,17 @@ Return the JSON action:`;
     const outputTokens = response.usage.output_tokens;
     const usage: TokenUsage = { inputTokens, outputTokens, costUsd: calcCost(model, inputTokens, outputTokens) };
 
-    // Extract JSON (Claude may still wrap in backticks despite instructions)
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
+    // Extract JSON — find the first complete {...} block by tracking brace depth
+    let jsonStr: string | null = null;
+    const start = text.indexOf('{');
+    if (start !== -1) {
+      let depth = 0;
+      for (let i = start; i < text.length; i++) {
+        if (text[i] === '{') depth++;
+        else if (text[i] === '}') { depth--; if (depth === 0) { jsonStr = text.slice(start, i + 1); break; } }
+      }
+    }
+    if (!jsonStr) {
       console.warn(`  [warn] Claude returned no JSON for step: "${step}"`);
       return { action: { type: 'skip' }, usage };
     }
@@ -172,7 +183,7 @@ Return the JSON action:`;
     // Sanitize common Claude JSON issues:
     // 1. Regex literals: /pattern/flags → "pattern"
     // 2. Trailing commas before } or ]
-    let sanitized = jsonMatch[0]
+    let sanitized = jsonStr
       .replace(/:\s*\/([^/\n]+)\/[gimsuy]*/g, ': "$1"')
       .replace(/,\s*([}\]])/g, '$1');
 
@@ -203,7 +214,11 @@ export function actionToCode(action: PlaywrightAction, stepDescription: string):
 
   // Build locator expression
   const locatorExpr = buildLocatorExpr(action);
-  const finalLocator = action.useFirst ? `${locatorExpr}.first()` : locatorExpr;
+  const finalLocator = action.useFirst
+    ? `${locatorExpr}.first()`
+    : action.useNth !== undefined
+      ? `${locatorExpr}.nth(${action.useNth})`
+      : locatorExpr;
 
   switch (action.type) {
     case 'scroll':

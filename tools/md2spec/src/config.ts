@@ -14,6 +14,7 @@ export interface Md2SpecConfig {
   };
   sections?: Record<string, string>;  // name → CSS selector for the container
   hints?: string[];                   // free-text hints injected into Claude's prompt
+  storageState?: string;              // default path to Playwright storage state (cookies/consent)
 }
 
 /**
