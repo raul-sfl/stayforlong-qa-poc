@@ -5,8 +5,8 @@
     "writeToSpec": true
   },
   "popupClose": {
-    "selector": "button:has([data-testid=\"CloseIcon\"])",
-    "comment": "Subscription/offers popup close button",
+    "selector": "[data-testid=\"close-button\"]",
+    "comment": "Subscription/offers popup close button — data-testid is language-independent",
     "writeToSpec": true
   },
   "sections": {
