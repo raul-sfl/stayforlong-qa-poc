@@ -1,0 +1,80 @@
+{
+  "type": "browser",
+  "name": "Login and Dashboard Check",
+  "status": "live",
+  "config": {
+    "request": {
+      "method": "GET",
+      "url": "https://app.example.com/login"
+    },
+    "variables": [],
+    "assertions": []
+  },
+  "options": {
+    "tick_every": 900,
+    "device_ids": ["laptop_large"],
+    "browser_steps": [
+      {
+        "name": "Navigate to login page",
+        "type": "goToUrl",
+        "params": { "value": "https://app.example.com/login" }
+      },
+      {
+        "name": "Fill email field",
+        "type": "typeText",
+        "params": {
+          "value": "user@example.com",
+          "element": {
+            "userLocator": {
+              "values": [{ "type": "css", "value": "#email" }]
+            }
+          }
+        }
+      },
+      {
+        "name": "Fill password field",
+        "type": "typeText",
+        "params": {
+          "value": "secret123",
+          "element": {
+            "userLocator": {
+              "values": [{ "type": "css", "value": "#password" }]
+            }
+          }
+        }
+      },
+      {
+        "name": "Click the login button",
+        "type": "click",
+        "params": {
+          "element": {
+            "userLocator": {
+              "values": [{ "type": "css", "value": "button[type='submit']" }]
+            }
+          }
+        }
+      },
+      {
+        "name": "Check URL contains dashboard",
+        "type": "assertCurrentUrl",
+        "params": { "value": "dashboard", "operator": "contains" }
+      },
+      {
+        "name": "Welcome banner should be visible",
+        "type": "assertElementPresent",
+        "params": {
+          "element": {
+            "userLocator": {
+              "values": [{ "type": "css", "value": ".welcome-banner" }]
+            }
+          }
+        }
+      },
+      {
+        "name": "Verify the page contains user name",
+        "type": "assertPageContains",
+        "params": { "value": "John Doe" }
+      }
+    ]
+  }
+}

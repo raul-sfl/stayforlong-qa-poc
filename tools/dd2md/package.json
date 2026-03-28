@@ -1,0 +1,26 @@
+{
+  "name": "dd2md",
+  "version": "1.0.0",
+  "description": "Convert Datadog Synthetics Browser Tests to Markdown specs",
+  "main": "dist/cli.js",
+  "bin": {
+    "dd2md": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/cli.ts",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "commander": "^12.0.0",
+    "fast-glob": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

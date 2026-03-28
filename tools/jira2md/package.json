@@ -1,0 +1,25 @@
+{
+  "name": "jira2md",
+  "version": "1.0.0",
+  "description": "Extract QA requirements from Jira issues and generate Markdown specs",
+  "main": "dist/cli.js",
+  "bin": {
+    "jira2md": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/cli.ts",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

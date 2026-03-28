@@ -1,0 +1,23 @@
+{
+  "consent": {
+    "selector": "#adopt-accept-all-button",
+    "comment": "AdOpt consent platform — ID is language-independent",
+    "writeToSpec": true
+  },
+  "popupClose": {
+    "selector": "button:has([data-testid=\"CloseIcon\"])",
+    "comment": "Subscription/offers popup close button",
+    "writeToSpec": true
+  },
+  "sections": {
+    "calendar": ".calendar",
+    "map": "[class*='Map'], [class*='map-container']"
+  },
+  "hints": [
+    "The calendar date picker shows two months side by side. Each month is inside a container with class 'calendar'. The first .calendar is the left month, the second .calendar (nth(1)) is the right month.",
+    "Calendar navigation arrows (ChevronRightIcon) are SVG elements with role='button' directly — not inside a <button> tag. Use .calendar [data-testid='ChevronRightIcon'] to scope to calendar only.",
+    "Calendar days are <li role='button' data-testid='default-day' aria-hidden='false'><span>N</span></li>. Days from adjacent months have aria-hidden='true' and must be excluded. ALWAYS use: locatorMethod 'locator', locatorArg '.calendar:first-of-type [data-testid=\"default-day\"][aria-hidden=\"false\"]', locatorOptions: { hasText: 'N' }, useFirst: true — where N is the day number from the step. For the second/right month use '.calendar:nth-of-type(2) [data-testid=\"default-day\"][aria-hidden=\"false\"]'. Never omit hasText and never omit aria-hidden filter.",
+    "The search autocomplete dropdown uses placeholder '¿A dónde vas a viajar?' in Spanish and 'Where are you going?' in English.",
+    "The check-in / check-out fields are readonly inputs with id='checkinrooms' and id='checkoutrooms'. They require forceClick to open the date picker."
+  ]
+}

@@ -1,0 +1,31 @@
+# ── dd2md tool ────────────────────────────────────────────
+tools/dd2md/node_modules/
+tools/dd2md/dist/
+
+# ── jira2md tool ──────────────────────────────────────────
+tools/jira2md/node_modules/
+tools/jira2md/dist/
+
+# ── md2spec tool ──────────────────────────────────────────
+tools/md2spec/node_modules/
+tools/md2spec/dist/
+
+# ── Playwright ────────────────────────────────────────────
+playwright/node_modules/
+playwright/playwright-report/
+playwright/test-results/
+playwright/blob-report/
+playwright/.cache/
+playwright/.auth/
+
+# ── AutoQA run artifacts (screenshots, traces, logs) ──────
+**/.autoqa/
+
+# ── macOS ─────────────────────────────────────────────────
+.DS_Store
+
+# Datadog exports — only 3 examples versioned, rest ignored
+datadog-exports/*.json
+!datadog-exports/d2v-jk8-n3a.json
+!datadog-exports/sjz-z4c-hrx.json
+!datadog-exports/msf-h5e-t34.json
