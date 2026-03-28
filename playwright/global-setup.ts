@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 
 const STATE_FILE = path.join(__dirname, '.auth', 'consent-state.json');
-const BASE_URL = process.env.AUTOQA_BASE_URL ?? 'https://es.stayforlong.com';
+const BASE_URL = process.env.BASE_URL ?? process.env.AUTOQA_BASE_URL ?? 'https://es.stayforlong.com';
 
 async function globalSetup(_config: FullConfig) {
   fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });

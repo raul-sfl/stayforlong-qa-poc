@@ -74,13 +74,13 @@ npm install
 npx playwright install chromium   # first time only
 
 # Run all specs
-AUTOQA_BASE_URL=https://es.stayforlong.com npx playwright test
+BASE_URL=https://es.stayforlong.com npx playwright test
 
 # Run a specific spec
-AUTOQA_BASE_URL=https://es.stayforlong.com npx playwright test specs/home-mapa.spec.ts
+BASE_URL=https://es.stayforlong.com npx playwright test specs/home-mapa.spec.ts
 
 # Run with visible browser
-AUTOQA_BASE_URL=https://es.stayforlong.com npx playwright test --headed
+BASE_URL=https://es.stayforlong.com npx playwright test --headed
 
 # HTML report
 npx playwright show-report --port 9324
